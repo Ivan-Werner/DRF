@@ -65,3 +65,5 @@ class AccountsAPITests(APITestCase):
         resp = self.client.patch(f"/api/auth/users/{self.user.id}/", {"role": "manager"}, format="json")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["role"], "manager")
+
+
