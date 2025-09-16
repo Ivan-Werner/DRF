@@ -29,11 +29,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "drf_spectacular",
     "drf_spectacular_sidecar",
-    # сторонние
+
     "rest_framework",
     "rest_framework_simplejwt",
-    # наши
-    "accounts",  # добавим после создания приложения
+
+    "accounts",
     "tracker",
 ]
 
@@ -73,7 +73,7 @@ WSGI_APPLICATION = "tasktracker.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # admin 123
@@ -81,11 +81,11 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "tasktracker"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "127.0.0.1"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
