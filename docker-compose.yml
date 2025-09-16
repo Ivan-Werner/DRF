@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:15
+    container_name: tasktracker_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tasktracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: tasktracker_web
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env.docker
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
