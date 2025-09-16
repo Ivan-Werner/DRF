@@ -5,10 +5,15 @@ from tracker.models import Employee, Task
 
 User = get_user_model()
 
+
 class TrackerAPITests(APITestCase):
     def setUp(self):
         self.admin = User.objects.create_user(
-            username="admin", password="Admin123!@#", role=User.Roles.ADMIN, is_superuser=True, is_staff=True
+            username="admin",
+            password="Admin123!@#",
+            role=User.Roles.ADMIN,
+            is_superuser=True,
+            is_staff=True,
         )
         self.manager = User.objects.create_user(
             username="manager", password="Manager123!@#", role=User.Roles.MANAGER
@@ -17,9 +22,15 @@ class TrackerAPITests(APITestCase):
             username="user", password="User123!@#", role=User.Roles.USER
         )
 
-        self.emp1 = Employee.objects.create(full_name="Иванов Иван", position="Разработчик")
-        self.emp2 = Employee.objects.create(full_name="Петров Пётр", position="Аналитик")
-        self.emp3 = Employee.objects.create(full_name="Сидоров Сидор", position="Тестировщик")
+        self.emp1 = Employee.objects.create(
+            full_name="Иванов Иван", position="Разработчик"
+        )
+        self.emp2 = Employee.objects.create(
+            full_name="Петров Пётр", position="Аналитик"
+        )
+        self.emp3 = Employee.objects.create(
+            full_name="Сидоров Сидор", position="Тестировщик"
+        )
 
         self.client = APIClient()
 
@@ -28,12 +39,20 @@ class TrackerAPITests(APITestCase):
     def test_user_cannot_create_employee_manager_can(self):
         # обычный юзер: 403
         self.client.force_authenticate(user=self.user)
-        resp = self.client.post("/api/employees/", {"full_name": "Новый Сотр", "position": "Стажёр"}, format="json")
+        resp = self.client.post(
+            "/api/employees/",
+            {"full_name": "Новый Сотр", "position": "Стажёр"},
+            format="json",
+        )
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
         # менеджер: 201
         self.client.force_authenticate(user=self.manager)
-        resp = self.client.post("/api/employees/", {"full_name": "Новый Сотр", "position": "Стажёр"}, format="json")
+        resp = self.client.post(
+            "/api/employees/",
+            {"full_name": "Новый Сотр", "position": "Стажёр"},
+            format="json",
+        )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
     # ---------- Tasks CRUD ----------
@@ -59,8 +78,12 @@ class TrackerAPITests(APITestCase):
 
     def test_manager_can_update_task_status(self):
         self.client.force_authenticate(user=self.manager)
-        t = Task.objects.create(title="Задача", executor=self.emp1, status=Task.Status.NEW)
-        resp = self.client.patch(f"/api/tasks/{t.id}/", {"status": Task.Status.IN_PROGRESS}, format="json")
+        t = Task.objects.create(
+            title="Задача", executor=self.emp1, status=Task.Status.NEW
+        )
+        resp = self.client.patch(
+            f"/api/tasks/{t.id}/", {"status": Task.Status.IN_PROGRESS}, format="json"
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["status"], Task.Status.IN_PROGRESS)
 
@@ -68,9 +91,15 @@ class TrackerAPITests(APITestCase):
 
     def test_busy_employees_counts_and_ordering(self):
         # emp1: 2 активных, emp2: 1 активная, emp3: 0
-        Task.objects.create(title="A1", executor=self.emp1, status=Task.Status.IN_PROGRESS)
-        Task.objects.create(title="A2", executor=self.emp1, status=Task.Status.IN_PROGRESS)
-        Task.objects.create(title="B1", executor=self.emp2, status=Task.Status.IN_PROGRESS)
+        Task.objects.create(
+            title="A1", executor=self.emp1, status=Task.Status.IN_PROGRESS
+        )
+        Task.objects.create(
+            title="A2", executor=self.emp1, status=Task.Status.IN_PROGRESS
+        )
+        Task.objects.create(
+            title="B1", executor=self.emp2, status=Task.Status.IN_PROGRESS
+        )
         Task.objects.create(title="C1", executor=self.emp3, status=Task.Status.NEW)
 
         self.client.force_authenticate(user=self.user)
@@ -78,8 +107,12 @@ class TrackerAPITests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.json()
         # порядок: emp1 (2), emp2 (1), emp3 (0)
-        self.assertGreaterEqual(data[0]["active_tasks_count"], data[1]["active_tasks_count"])
-        self.assertGreaterEqual(data[1]["active_tasks_count"], data[2]["active_tasks_count"])
+        self.assertGreaterEqual(
+            data[0]["active_tasks_count"], data[1]["active_tasks_count"]
+        )
+        self.assertGreaterEqual(
+            data[1]["active_tasks_count"], data[2]["active_tasks_count"]
+        )
         # проверим совпадение имён
         names = [d["employee"] for d in data]
         self.assertIn(self.emp1.full_name, names)
@@ -99,16 +132,28 @@ class TrackerAPITests(APITestCase):
         # emp1: 0 активных
         # emp2: 1 активная
         # emp3: 2 активных
-        Task.objects.create(title="load2-1", executor=self.emp3, status=Task.Status.IN_PROGRESS)
-        Task.objects.create(title="load2-2", executor=self.emp3, status=Task.Status.IN_PROGRESS)
-        Task.objects.create(title="load1-1", executor=self.emp2, status=Task.Status.IN_PROGRESS)
+        Task.objects.create(
+            title="load2-1", executor=self.emp3, status=Task.Status.IN_PROGRESS
+        )
+        Task.objects.create(
+            title="load2-2", executor=self.emp3, status=Task.Status.IN_PROGRESS
+        )
+        Task.objects.create(
+            title="load1-1", executor=self.emp2, status=Task.Status.IN_PROGRESS
+        )
 
         # важная задача (родитель), НЕ в работе, с исполнителем emp2
-        important = Task.objects.create(title="ВАЖНАЯ", executor=self.emp2, status=Task.Status.NEW)
+        important = Task.objects.create(
+            title="ВАЖНАЯ", executor=self.emp2, status=Task.Status.NEW
+        )
 
         # зависимая задача в работе (child -> in_progress)
-        child = Task.objects.create(title="child in work", parent=important, executor=self.emp3,
-                                    status=Task.Status.IN_PROGRESS)
+        child = Task.objects.create(
+            title="child in work",
+            parent=important,
+            executor=self.emp3,
+            status=Task.Status.IN_PROGRESS,
+        )
 
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/tasks/important-tasks/")
