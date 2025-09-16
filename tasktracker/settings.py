@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-_p4e3oz%a%+_&5(n_ag3#&=&)p*bf*nbh)67=4atod@3g2!335"
+SECRET_KEY =os.getenv("DJANGO_SECRET_KEY")
 
 DEBUG = True
 
@@ -73,8 +73,8 @@ WSGI_APPLICATION = "tasktracker.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-DEBUG = os.getenv("DEBUG", "False") == "True"
+# SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+# DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # admin 123
 # eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3OTQ3NzQ4LCJpYXQiOjE3NTc5NDc0NDgsImp0aSI6ImM2NzU0MWRkZWIyZTQzYWQ4OTJhNzIwYTA0YjIyZmI5IiwidXNlcl9pZCI6IjEifQ.dOkDAJICHsNXSn7_VC1pwHphVzQ4By_XdHFXqldrd9s
