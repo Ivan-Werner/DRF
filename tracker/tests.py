@@ -37,7 +37,7 @@ class TrackerAPITests(APITestCase):
     # ---------- Employees CRUD ----------
 
     def test_user_cannot_create_employee_manager_can(self):
-        # обычный юзер: 403
+
         self.client.force_authenticate(user=self.user)
         resp = self.client.post(
             "/api/employees/",
@@ -46,7 +46,7 @@ class TrackerAPITests(APITestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
-        # менеджер: 201
+
         self.client.force_authenticate(user=self.manager)
         resp = self.client.post(
             "/api/employees/",
@@ -66,12 +66,12 @@ class TrackerAPITests(APITestCase):
             "due_date": "2025-09-22",
             "status": Task.Status.NEW,
         }
-        # user: 403
+
         self.client.force_authenticate(user=self.user)
         resp = self.client.post("/api/tasks/", task_payload, format="json")
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
-        # manager: 201
+
         self.client.force_authenticate(user=self.manager)
         resp = self.client.post("/api/tasks/", task_payload, format="json")
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -168,5 +168,5 @@ class TrackerAPITests(APITestCase):
         # минимально загруженный = emp1 (0 активных)
         self.assertIn(self.emp1.full_name, candidates)
 
-        # исполнитель важной задачи emp2 имеет 1 активную — порог 0+2=2, значит тоже подходит
+        # исполнитель важной задачи emp2 имеет 1 активную — порог 0+2=2
         self.assertIn(self.emp2.full_name, candidates)
