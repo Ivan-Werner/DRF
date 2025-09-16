@@ -4,11 +4,16 @@ from rest_framework import status
 
 User = get_user_model()
 
+
 class AccountsAPITests(APITestCase):
     def setUp(self):
         # создаём admin, manager, user
         self.admin = User.objects.create_user(
-            username="admin", password="Admin123!@#", role=User.Roles.ADMIN, is_superuser=True, is_staff=True
+            username="admin",
+            password="Admin123!@#",
+            role=User.Roles.ADMIN,
+            is_superuser=True,
+            is_staff=True,
         )
         self.manager = User.objects.create_user(
             username="manager", password="Manager123!@#", role=User.Roles.MANAGER
@@ -32,7 +37,11 @@ class AccountsAPITests(APITestCase):
 
     def test_token_and_me(self):
         # логин
-        resp = self.client.post("/api/auth/token/", {"username": "user", "password": "User123!@#"}, format="json")
+        resp = self.client.post(
+            "/api/auth/token/",
+            {"username": "user", "password": "User123!@#"},
+            format="json",
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         access = resp.data["access"]
         # me
@@ -56,12 +65,18 @@ class AccountsAPITests(APITestCase):
     def test_user_cannot_change_own_role(self):
         self.client.force_authenticate(user=self.user)
         # пытаемся поменять свою роль
-        resp = self.client.patch(f"/api/auth/users/{self.user.id}/", {"role": "admin"}, format="json")
+        resp = self.client.patch(
+            f"/api/auth/users/{self.user.id}/", {"role": "admin"}, format="json"
+        )
         # сериализатор должен запретить
-        self.assertIn(resp.status_code, (status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN))
+        self.assertIn(
+            resp.status_code, (status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN)
+        )
 
     def test_admin_can_change_role(self):
         self.client.force_authenticate(user=self.admin)
-        resp = self.client.patch(f"/api/auth/users/{self.user.id}/", {"role": "manager"}, format="json")
+        resp = self.client.patch(
+            f"/api/auth/users/{self.user.id}/", {"role": "manager"}, format="json"
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["role"], "manager")
