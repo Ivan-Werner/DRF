@@ -6,15 +6,15 @@ from .permissions import IsAdmin, IsSelfOrAdmin
 User = get_user_model()
 
 
-# 🔹 Регистрация нового пользователя (всегда обычный user)
 class RegisterView(generics.CreateAPIView):
+    """ Регистрация нового пользователя (всегда обычный user) """
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
 
-# 🔹 Текущий пользователь (/me/)
 class MeView(generics.RetrieveAPIView):
+    """ Текущий пользователь (/me/) """
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -22,8 +22,8 @@ class MeView(generics.RetrieveAPIView):
         return self.request.user
 
 
-# 🔹 CRUD пользователей
 class UserViewSet(viewsets.ModelViewSet):
+    """ CRUD пользователей """
     queryset = User.objects.all()
 
     def get_permissions(self):

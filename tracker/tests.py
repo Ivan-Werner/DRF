@@ -34,8 +34,6 @@ class TrackerAPITests(APITestCase):
 
         self.client = APIClient()
 
-    # ---------- Employees CRUD ----------
-
     def test_user_cannot_create_employee_manager_can(self):
 
         self.client.force_authenticate(user=self.user)
@@ -46,7 +44,6 @@ class TrackerAPITests(APITestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
-
         self.client.force_authenticate(user=self.manager)
         resp = self.client.post(
             "/api/employees/",
@@ -55,7 +52,6 @@ class TrackerAPITests(APITestCase):
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
-    # ---------- Tasks CRUD ----------
 
     def test_user_cannot_create_task_manager_can(self):
         task_payload = {
@@ -87,10 +83,8 @@ class TrackerAPITests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["status"], Task.Status.IN_PROGRESS)
 
-    # ---------- busy-employees ----------
 
     def test_busy_employees_counts_and_ordering(self):
-        # emp1: 2 активных, emp2: 1 активная, emp3: 0
         Task.objects.create(
             title="A1", executor=self.emp1, status=Task.Status.IN_PROGRESS
         )
@@ -106,20 +100,17 @@ class TrackerAPITests(APITestCase):
         resp = self.client.get("/api/tasks/busy-employees/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.json()
-        # порядок: emp1 (2), emp2 (1), emp3 (0)
         self.assertGreaterEqual(
             data[0]["active_tasks_count"], data[1]["active_tasks_count"]
         )
         self.assertGreaterEqual(
             data[1]["active_tasks_count"], data[2]["active_tasks_count"]
         )
-        # проверим совпадение имён
         names = [d["employee"] for d in data]
         self.assertIn(self.emp1.full_name, names)
         self.assertIn(self.emp2.full_name, names)
         self.assertIn(self.emp3.full_name, names)
 
-    # ---------- important-tasks ----------
 
     def test_important_tasks_candidates_selection(self):
         """
@@ -128,10 +119,7 @@ class TrackerAPITests(APITestCase):
           - минимально загруженный сотрудник
           - И/ИЛИ исполнитель важной задачи, если его нагрузка <= min + 2
         """
-        # активные нагрузки:
-        # emp1: 0 активных
-        # emp2: 1 активная
-        # emp3: 2 активных
+
         Task.objects.create(
             title="load2-1", executor=self.emp3, status=Task.Status.IN_PROGRESS
         )
@@ -142,12 +130,10 @@ class TrackerAPITests(APITestCase):
             title="load1-1", executor=self.emp2, status=Task.Status.IN_PROGRESS
         )
 
-        # важная задача (родитель), НЕ в работе, с исполнителем emp2
         important = Task.objects.create(
             title="ВАЖНАЯ", executor=self.emp2, status=Task.Status.NEW
         )
 
-        # зависимая задача в работе (child -> in_progress)
         child = Task.objects.create(
             title="child in work",
             parent=important,
@@ -160,13 +146,10 @@ class TrackerAPITests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         items = resp.json()
-        # должна быть найдена "ВАЖНАЯ"
         item = next((x for x in items if x["important_task"] == "ВАЖНАЯ"), None)
         self.assertIsNotNone(item)
 
         candidates = set(item["candidates"])
-        # минимально загруженный = emp1 (0 активных)
         self.assertIn(self.emp1.full_name, candidates)
 
-        # исполнитель важной задачи emp2 имеет 1 активную — порог 0+2=2
         self.assertIn(self.emp2.full_name, candidates)

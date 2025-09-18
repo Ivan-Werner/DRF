@@ -3,6 +3,7 @@ from rest_framework import viewsets, permissions, decorators, response
 from .models import Employee, Task
 from .serializers import EmployeeSerializer, TaskSerializer
 from .permissions import IsManagerOrAdminForUnsafe
+from rest_framework import status
 
 
 ACTIVE_Q = Q(tasks__status=Task.Status.IN_PROGRESS)
@@ -13,7 +14,6 @@ from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
 )
-from rest_framework import status
 
 
 @extend_schema_view(
@@ -71,7 +71,6 @@ class TaskViewSet(viewsets.ModelViewSet):
             )
         ).order_by("-active_tasks_count", "id")
 
-        # Соберём активные задачи для каждого сотрудника (оптимизация: один запрос на все активные)
         active_tasks = Task.objects.filter(
             status=Task.Status.IN_PROGRESS, executor__in=qs
         ).select_related("executor")
@@ -113,7 +112,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         - наименее загруженный сотрудник (минимум активных задач),
         - И/ИЛИ исполнитель родительской задачи, если у него <= (min + 2) активных.
         """
-        # загрузка сотрудников с подсчётом активных задач
         employees = Employee.objects.annotate(
             active_count=Count("tasks", filter=Q(tasks__status=Task.Status.IN_PROGRESS))
         ).order_by("active_count", "id")
@@ -124,7 +122,6 @@ class TaskViewSet(viewsets.ModelViewSet):
         least_count = least_loaded.active_count or 0
         threshold = least_count + 2
 
-        # важные задачи: не in_progress, но у них есть дочерние в in_progress
         important = (
             Task.objects.filter(~Q(status=Task.Status.IN_PROGRESS))
             .filter(children__status=Task.Status.IN_PROGRESS)
@@ -133,16 +130,13 @@ class TaskViewSet(viewsets.ModelViewSet):
             .order_by("due_date", "id")
         )
 
-        # карту активной нагрузки по сотрудникам для быстрого доступа
         load_map = {e.id: (e.active_count or 0) for e in employees}
 
         result = []
         for t in important:
             candidates = set()
-            # 1) минимально загруженный
             candidates.add(least_loaded.full_name)
 
-            # 2) исполнитель родительской задачи (если проходит порог)
             if t.executor_id:
                 parent_exec = t.executor
                 parent_load = load_map.get(parent_exec.id, 0)

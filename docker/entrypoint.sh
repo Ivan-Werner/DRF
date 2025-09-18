@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-# Ожидаем базу данных
-echo "Waiting for Postgres at ${DB_HOST}:${DB_PORT}..."
+echo "Waiting for Postgres at ${DB_HOST}:${DB_PORT}..."   # Ожидаем базу данных
 python - <<'PYCODE'
 import os, time
 import psycopg2
@@ -25,11 +24,9 @@ else:
     raise SystemExit("Postgres not reachable after 30s.")
 PYCODE
 
-# Миграции
-python manage.py migrate --noinput
+python manage.py migrate --noinput    # Миграции
 
-# Создание суперпользователя, если задан ENV и его ещё нет
-python manage.py shell <<'PYCODE'
+python manage.py shell <<'PYCODE'     # Создание суперпользователя, если задан ENV и его ещё нет
 import os
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -46,6 +43,5 @@ else:
     print("Superuser env vars not provided; skipping creation.")
 PYCODE
 
-# Запуск сервера разработки (для прод — см. ниже раздел Production)
-echo "Starting Django dev server at 0.0.0.0:8000 ..."
+echo "Starting Django dev server at 0.0.0.0:8000 ..."   # Запуск сервера разработки (для прод — см. ниже раздел Production)
 python manage.py runserver 0.0.0.0:8000

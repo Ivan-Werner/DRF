@@ -53,6 +53,7 @@ class UserWriteSerializer(serializers.ModelSerializer):
         fields = ["username", "email", "first_name", "last_name", "role", "password"]
 
     def validate(self, attrs):
+        """Запрет изменения role не-админу"""
         request = self.context.get("request")
         is_admin = bool(
             request
@@ -63,7 +64,6 @@ class UserWriteSerializer(serializers.ModelSerializer):
             )
         )
 
-        # Запрет изменения role не-админу
         if not is_admin and "role" in attrs:
             raise serializers.ValidationError(
                 {"role": "Изменять роль может только администратор."}
@@ -72,13 +72,11 @@ class UserWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)
-        # Если создаёт не-админ — через этот сериализатор нельзя (создание — только админ)
         user = User(**validated_data)
         if password:
             validate_password(password)
             user.set_password(password)
         else:
-            # Если пароль не передан — сгенерируй или запрети. Запретим:
             raise serializers.ValidationError(
                 {"password": "Пароль обязателен при создании пользователя."}
             )

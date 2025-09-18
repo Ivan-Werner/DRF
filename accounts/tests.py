@@ -50,25 +50,21 @@ class AccountsAPITests(APITestCase):
         self.assertEqual(me.status_code, status.HTTP_200_OK)
         self.assertEqual(me.data["username"], "user")
 
-    def test_users_list_admin_only(self):
-        # как обычный пользователь — 403
+    def test_users_list_admin_only(self):       # как обычный пользователь — 403
         self.client.force_authenticate(user=self.user)
         resp = self.client.get("/api/auth/users/")
         self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
 
-        # как админ — 200
-        self.client.force_authenticate(user=self.admin)
+        self.client.force_authenticate(user=self.admin)     # как админ — 200
         resp = self.client.get("/api/auth/users/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTrue(isinstance(resp.data, list))
 
     def test_user_cannot_change_own_role(self):
-        self.client.force_authenticate(user=self.user)
-        # пытаемся поменять свою роль
+        self.client.force_authenticate(user=self.user)      # пытаемся поменять свою роль
         resp = self.client.patch(
             f"/api/auth/users/{self.user.id}/", {"role": "admin"}, format="json"
         )
-        # сериализатор должен запретить
         self.assertIn(
             resp.status_code, (status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN)
         )
